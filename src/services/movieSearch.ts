@@ -1,6 +1,11 @@
 import axios from 'axios';
+import { Movie } from '../types/movie';
 
-export default async function fetchMovies(query: string) {
+interface MovieResponse { 
+  results: Movie[];
+}
+
+export const searchMovies = async (query: string): Promise<Movie[]> => {
 
     const TMDB_TOKEN = import.meta.env.VITE_TMDB_TOKEN;
 
@@ -12,13 +17,7 @@ export default async function fetchMovies(query: string) {
         Authorization: `Bearer ${TMDB_TOKEN}`
       } 
    };
+      const response = await axios.get<MovieResponse>(options.url, { headers: options.headers });      
+      return response.data.results;
 
-    try {
-      const response = await axios.get(options.url, { headers: options.headers });      
-      const movies = response.data.results;
-      return movies;
-        
-    } catch (error) {
-      console.error('Error fetching movies:', error);
-    }
   };

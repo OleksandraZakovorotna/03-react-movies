@@ -2,15 +2,13 @@ import css from './Loader.module.css'
 
 interface LoaderProps { 
     isLoading: boolean;
-    hasError: boolean;
 }
 
-export default function Loader({isLoading, hasError}: LoaderProps) { 
+export default function Loader({isLoading}: LoaderProps) { 
     return (
         <div>
-            {isLoading ?
-                <p className={css.text}>Loading movies, please wait...</p> :
-                hasError && <p className={css.text}>There was an error, please try again...</p>}
+            {isLoading &&
+                <p className={css.text}>Loading movies, please wait...</p> }
         </div>
     )
 }

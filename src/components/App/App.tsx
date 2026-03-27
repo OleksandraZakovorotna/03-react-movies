@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import axios from 'axios';
 import SearchBar from "../SearchBar/SearchBar";
 import css from './App.module.css'
 import { Movie } from '../../types/movie';
@@ -7,45 +6,36 @@ import MovieGrid from '../MovieGrid/MovieGrid';
 import Loader from '../Loader/Loader';
 import { Toaster } from 'react-hot-toast';
 import toast from 'react-hot-toast';
-
-
-interface MovieResponse { 
-  results: Movie[];
-}
+import ErrorMessage from '../ErrorMessage/ErrorMessage';
+import { searchMovies } from '../../services/movieSearch';
+import MovieModal from '../MovieModal/MovieModal';
 
 
 export default function App() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [selectMovie, setSelectMovie] = useState<Movie | null>(null);
   const [error, setError] = useState<boolean>(false);
 
+
+
   const fetchMovies = async (query: string) => {
+
     setMovies([]);
-    setLoading(true);
     setError(false);
-
-    const TMDB_TOKEN = import.meta.env.VITE_TMDB_TOKEN;
-
-    const options = {
-      method: 'GET',
-      url: `https://api.themoviedb.org/3/search/movie?query=${query}`,
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${TMDB_TOKEN}`
-      } 
-   };
+    setSelectMovie(null);
 
     try { 
-
       setLoading(true);
-      const response = await axios.get<MovieResponse>(options.url, { headers: options.headers });      
-      const movies = response.data.results;
+      
+      const response = await searchMovies(query);
 
-      if (movies.length === 0) {
+
+      if (response.length === 0) {
         toast.error('No movies found for your request.');
         return;
       }
-      setMovies(movies);
+      setMovies(response);
         
     } catch {
       setError(true);
@@ -55,6 +45,7 @@ export default function App() {
   };
   
   
+  
   return (
     <div className={css.app}>
       <Toaster
@@ -62,8 +53,10 @@ export default function App() {
       reverseOrder={true}
       />
       <SearchBar onSubmit={fetchMovies} />
-      <Loader isLoading={loading} hasError={error} />
-    {movies.length > 0 && <MovieGrid movies={movies} /> }
+      <Loader isLoading={loading}/>
+      {error && <ErrorMessage />}
+      {movies.length > 0 && <MovieGrid movies={movies} onSelect={(movie) => setSelectMovie(movie)} />} 
+      {selectMovie && <MovieModal movie={selectMovie} onClose={() => setSelectMovie(null)} />}
     </div>  
   )
 }
